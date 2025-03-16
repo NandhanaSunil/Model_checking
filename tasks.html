@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Advanced To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"], input[type="date"] {
+            width: 60%;
+            padding: 8px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 12px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        #buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #fff;
+            margin: 8px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .done {
+            text-decoration: line-through;
+            color: #777;
+        }
+        .delete-btn, .done-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .done-btn {
+            background: #007bff;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>To-Do List</h1>
+    <div>
+        <input type="text" id="taskInput" placeholder="Add a new task...">
+        <input type="date" id="dueDate">
+        <button onclick="addTask()">Add</button>
+    </div>
+    <div id="buttons">
+        <button onclick="sortTasks()" style="background: #17a2b8;">Sort by Due Date</button>
+        <button onclick="clearAll()" style="background: #6c757d;">Clear All</button>
+    </div>
+    <ul id="taskList"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+        function loadTasks() {
+            const tasks_model_checking = JSON.parse(localStorage.getItem('tasks_model_checking')) || [];
+            const taskList = document.getElementById("taskList");
+            taskList.innerHTML = "";
+            tasks_model_checking.forEach(task => addTaskToDOM(task.text, task.dueDate, task.done));
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById("taskInput");
+            const dueDateInput = document.getElementById("dueDate");
+            const taskText = taskInput.value.trim();
+            const dueDate = dueDateInput.value;
+
+            if (taskText !== "") {
+                const tasks_model_checking = JSON.parse(localStorage.getItem('tasks_model_checking')) || [];
+                const newTask = { text: taskText, dueDate: dueDate, done: false };
+                tasks_model_checking.push(newTask);
+                localStorage.setItem('tasks_model_checking', JSON.stringify(tasks_model_checking));
+                loadTasks();
+                taskInput.value = "";
+                dueDateInput.value = "";
+            } else {
+                alert("Please enter a task!");
+            }
+        }
+
+        function addTaskToDOM(taskText, dueDate, done) {
+            const taskList = document.getElementById("taskList");
+            const li = document.createElement("li");
+            li.className = done ? 'done' : '';
+            li.innerHTML = `
+                <span>${taskText} ${dueDate ? ` (Due: ${dueDate})` : ''}</span>
+                <div>
+                    <button class="done-btn" onclick="toggleDone(this)">✔</button>
+                    <button class="delete-btn" onclick="removeTask(this)">🗑</button>
+                </div>`;
+            taskList.appendChild(li);
+        }
+
+        function toggleDone(button) {
+            const taskItem = button.closest("li");
+            taskItem.classList.toggle("done");
+
+            const taskText = taskItem.querySelector("span").textContent.split(" (Due:")[0].trim();
+            let tasks_model_checking = JSON.parse(localStorage.getItem('tasks_model_checking')) || [];
+            const task = tasks_model_checking.find(task => task.text === taskText);
+            task.done = !task.done;
+            localStorage.setItem('tasks_model_checking', JSON.stringify(tasks_model_checking));
+        }
+
+        function removeTask(button) {
+            const taskItem = button.closest("li");
+            const taskText = taskItem.querySelector("span").textContent.split(" (Due:")[0].trim();
+            let tasks_model_checking = JSON.parse(localStorage.getItem('tasks_model_checking')) || [];
+            tasks_model_checking = tasks_model_checking.filter(task => task.text !== taskText);
+            localStorage.setItem('tasks_model_checking', JSON.stringify(tasks_model_checking));
+            loadTasks();
+        }
+
+        function clearAll() {
+            if (confirm("Are you sure you want to clear all tasks?")) {
+                localStorage.removeItem('tasks_model_checking');
+                loadTasks();
+            }
+        }
+
+        function sortTasks() {
+            let tasks_model_checking = JSON.parse(localStorage.getItem('tasks_model_checking')) || [];
+            tasks_model_checking.sort((a, b) => {
+                if (!a.dueDate) return 1;
+                if (!b.dueDate) return -1;
+                return new Date(a.dueDate) - new Date(b.dueDate);
+            });
+            localStorage.setItem('tasks_model_checking', JSON.stringify(tasks_model_checking));
+            loadTasks();
+        }
+    </script>
+</body>
+</html>
