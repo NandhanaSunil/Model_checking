@@ -27,6 +27,7 @@ typedef struct {
     int num_transitions;
 } Kripke;
 
+Kripke initkripke();
 void parseKripke(const char *filename, Kripke* ks);
 void printKripke(Kripke* ks);
 void freeKripke(Kripke* ks);

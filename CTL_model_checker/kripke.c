@@ -87,38 +87,33 @@ void printKripke(Kripke* ks){
 }
 
 void freeKripke(Kripke* ks) {
-    for (int i = 0; i < ks->num_states; i++) {
-        if (ks->states[i].name) {
-            free(ks->states[i].name);
-            ks->states[i].name = NULL;
-        }
+    if (ks == NULL) return; // Avoid double-free or null pointer dereference
 
-        if (ks->states[i].labels) {
-            for (int j = 0; j < ks->states[i].num_labels; j++) {
-                if (ks->states[i].labels[j]) {
-                    free(ks->states[i].labels[j]);
-                }
-            }
-            free(ks->states[i].labels);  // Free the array of label pointers
+    // Free memory allocated for states
+    for (int i = 0; i < MAX_STATES; i++) {
+        free(ks->states[i].name);
+
+        for (int j = 0; j < MAX_LABELS; j++) {
+            free(ks->states[i].labels[j]); // Free each label string
         }
+        free(ks->states[i].labels); // Free the labels array
     }
 
-    for (int i = 0; i < ks->num_transitions; i++) {
-        if (ks->transitions[i].from) {
-            free(ks->transitions[i].from);
-        }
-        if (ks->transitions[i].to) {
-            free(ks->transitions[i].to);
-        }
-        free(ks->transitions);
+    // Free memory allocated for transitions
+    for (int i = 0; i < MAX_STATES * 3; i++) {
+        free(ks->transitions[i].from);
+        free(ks->transitions[i].to);
     }
+
+    // Free the Kripke structure itself
+    free(ks);
 }
 
 
 
-Kripke initkripke(Kripke* ks){
+Kripke initkripke(){
     //allocate memory for the kripke structure
-    ks = (Kripke*)malloc(sizeof(Kripke));
+    Kripke* ks = (Kripke*)malloc(sizeof(Kripke));
     if (ks == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for Kripke structure\n");
         exit(1);
@@ -155,14 +150,14 @@ Kripke initkripke(Kripke* ks){
     }
     return *ks;
 }
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <kripke.json>\n", argv[0]);
         return 1;
     }
 
-    Kripke ks;
-    ks = initkripke(&ks);
+    Kripke ks = initkripke();
     parseKripke(argv[1], &ks);
     printKripke(&ks);
     freeKripke(&ks);
