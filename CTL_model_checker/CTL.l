@@ -23,8 +23,10 @@
 "AG"        { return AG; }
 "AF"        { return AF; }
 "AX"        { return AX; }
-"A"        { return A; }
-"EG"        { return EG; }
+"A"         { return A; }
+"EF"        { return EF; }
+"Beg"       { return BEG; }
+"End"       { return END; }
 [ \t\n]     ;
 .           { printf("Unexpected character: %c\n", yytext[0]); }
 %%
