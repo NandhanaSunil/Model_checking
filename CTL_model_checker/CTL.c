@@ -61,6 +61,14 @@ void freetree(Node *node) {
 }
 
 satisfying_states* add_state(satisfying_states* head, State* state) {
+    //check if the state is already present in the list
+    satisfying_states* temp = head;
+    while (temp!=NULL){
+        if (strcmp(temp->state->name, state->name)==0){
+            return head;
+        }
+        temp = temp->next;
+    }
     satisfying_states* new_node = (satisfying_states*)malloc(sizeof(satisfying_states));
     new_node->state = state;
     new_node->next = head;
@@ -242,6 +250,7 @@ queue* enqueue(queue* q, State* state){
     new_node->state = state;
     new_node->next = NULL;
     if (temp->state == NULL){
+        free(temp);
         return new_node;
     }
     temp->next = new_node;
@@ -267,7 +276,12 @@ void process_EU(Node* node, Kripke* ks){
         printf("No satisfying states for right child\n");
         return;
     }
-    node->sat_states = sat_states2;
+    satisfying_states* temp1 = sat_states1;
+    while(temp1!=NULL){
+        node->sat_states = add_state(node->sat_states, temp1->state);
+        temp1 = temp1->next;
+    }
+    // node->sat_states = sat_states2;
     queue* q = init_queue();
     satisfying_states* temp = sat_states2;
     while (temp!=NULL){
@@ -280,7 +294,9 @@ void process_EU(Node* node, Kripke* ks){
         State* state = dequeue(q);
         // printf("printing queue\n");
         // print_queue(q);
+        queue* temp2 = q;
         q = q->next;
+        free(temp2);
         // print_queue(q);
         if (state!= NULL){
         state_info_list* inneighbours = state->inneighbors;
@@ -306,11 +322,21 @@ void process_EU(Node* node, Kripke* ks){
             }
             inneighbours = inneighbours->next;
         }
-    }}
+
+        
+    }
+}
     print_states(node);
     // reset the visited flag
     for (int i=0; i<ks->num_states; i++){
         ks->states[i].visited = 0;
+    }
+    //free the queue
+    queue* temp3 = q;
+    while (temp3!=NULL){
+        queue* next = temp3->next;
+        free(temp3);
+        temp3 = next;
     }
     return;
 }

@@ -75,7 +75,7 @@ expression:
                                                         }
                                                         //printtree($$);
                                                         }
-    | PROP                                            { $$ = new_node($1, NULL, NULL); printtree($$); process_prop($$,&ks );}
+    | PROP                                            { $$ = new_node($1, NULL, NULL); printtree($$); process_prop($$,&ks ); free($1);}
     | T                                               { $$ = new_node("T", NULL, NULL); printtree($$); process_T($$,&ks);}
     | F                                               { $$ = new_node("F", NULL, NULL); printtree($$); process_F($$,&ks);}
     | AG expression                                   { Node* neg = new_node("~", $2, NULL); process_neg(neg, &ks);

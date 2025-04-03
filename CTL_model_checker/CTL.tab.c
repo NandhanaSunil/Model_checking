@@ -1463,7 +1463,7 @@ yyreduce:
 
   case 12:
 #line 78 "CTL.y"
-                                                      { (yyval.node) = new_node((yyvsp[0].str), NULL, NULL); printtree((yyval.node)); process_prop((yyval.node),&ks );}
+                                                      { (yyval.node) = new_node((yyvsp[0].str), NULL, NULL); printtree((yyval.node)); process_prop((yyval.node),&ks ); free((yyvsp[0].str));}
 #line 1468 "CTL.tab.c"
     break;
 

@@ -13,6 +13,11 @@ seg:CTL.y CTL.l kripke.c
 	bison -d CTL.y
 	flex CTL.l
 	gcc -g -o CTL_checker CTL.tab.c lex.yy.c kripke.c CTL.c -lcjson
+
+sanit:CTL.y CTL.l kripke.c
+	bison -d CTL.y
+	flex CTL.l
+	gcc -g -o CTL_checker CTL.tab.c lex.yy.c kripke.c CTL.c -lcjson -fsanitize=address
 	
 clean:
 	rm -f CTL_checker CTL.tab.c CTL.tab.h lex.yy.c
