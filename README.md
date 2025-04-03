@@ -1,3 +1,3 @@
 # Model_checking
 
-### I will add my daily progress here 
+### CTL_model checker implementation by bottom up parsing of parse tree
