@@ -278,8 +278,8 @@ void process_EU(Node* node, Kripke* ks){
     // print_queue(q);
     while (q !=NULL){
         State* state = dequeue(q);
-        printf("printing queue\n");
-        print_queue(q);
+        // printf("printing queue\n");
+        // print_queue(q);
         q = q->next;
         // print_queue(q);
         if (state!= NULL){
@@ -288,17 +288,17 @@ void process_EU(Node* node, Kripke* ks){
             State* instate = inneighbours->state;
             if (instate->visited == 0){
                 instate->visited = 1;
-                printf("State: %s\n", instate->name);
+                // printf("State: %s\n", instate->name);
                 satisfying_states* temp1 = sat_states1;
                 while (temp1!=NULL){
-                    printf("Satisfying states of left child: %s\n", temp1->state->name);
+                    // printf("Satisfying states of left child: %s\n", temp1->state->name);
                     if (strcmp(instate->name, temp1->state->name)==0){
-                        printf("State found: %s\n", instate->name);
+                        // printf("State found: %s\n", instate->name);
                         node->sat_states = add_state(node->sat_states, instate);
-                        print_states(node);
+                        // print_states(node);
                         q = enqueue(q, instate);
-                        printf("printing queue after enqueing\n");
-                        print_queue(q);
+                        // printf("printing queue after enqueing\n");
+                        // print_queue(q);
                         break;
                     }
                     temp1 = temp1->next;
