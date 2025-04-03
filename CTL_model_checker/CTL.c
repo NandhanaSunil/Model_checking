@@ -92,8 +92,12 @@ void printtree(Node *node){
     return;
 }
 
-void print_states(satisfying_states* head){
-    satisfying_states* temp = head;
+void print_states(Node* node){
+    satisfying_states* temp = node->sat_states;
+    printf("Formula : ");
+    printformula(node);
+    printf("\n");
+    printf("Satisfying states: ");
     while (temp!=NULL){
         printf("%s  ", temp->state->name);
         temp = temp->next;
@@ -114,7 +118,7 @@ void process_prop(Node* node, Kripke* ks){
             }
         }
     }  
-    print_states(node->sat_states);
+    print_states(node);
     return;
 }
 
@@ -126,7 +130,7 @@ void process_neg(Node* node, Kripke* ks){
         int flag = 0;
         satisfying_states* temp = sat_states;
         while (temp!=NULL){
-            if (strcmp(ks->states[i].name, temp->state)==0){
+            if (strcmp(ks->states[i].name, temp->state->name)==0){
                 flag = 1;
                 break;
             }
@@ -136,7 +140,7 @@ void process_neg(Node* node, Kripke* ks){
             node->sat_states = add_state(node->sat_states, &(ks->states[i]));
         }
     }
-    print_states(node->sat_states);
+    print_states(node);
     return;
 }
 
@@ -149,7 +153,7 @@ void process_or(Node* node, Kripke* ks){
         int flag = 0;
         satisfying_states* temp = sat_states1;
         while (temp!=NULL){
-            if (strcmp(ks->states[i].name, temp->state)==0){
+            if (strcmp(ks->states[i].name, temp->state->name)==0){
                 flag = 1;
                 break;
             }
@@ -157,7 +161,7 @@ void process_or(Node* node, Kripke* ks){
         }
         temp = sat_states2;
         while (temp!=NULL){
-            if (strcmp(ks->states[i].name, temp->state)==0){
+            if (strcmp(ks->states[i].name, temp->state->name)==0){
                 flag = 1;
                 break;
             }
@@ -167,7 +171,7 @@ void process_or(Node* node, Kripke* ks){
             node->sat_states = add_state(node->sat_states, &(ks->states[i]));
         }
     }
-    print_states(node->sat_states);
+    print_states(node);
     return;
 }
 
@@ -176,13 +180,13 @@ void process_T(Node* node, Kripke* ks){
     for (int i=0; i<ks->num_states; i++){
         node->sat_states = add_state(node->sat_states, &(ks->states[i]));
     }   
-    print_states(node->sat_states);
+    print_states(node);
     return;
 }
 
 void process_F(Node* node, Kripke* ks){
    node->sat_states = NULL;
-    print_states(node->sat_states);
+    print_states(node);
     return;
     
 }
@@ -202,7 +206,7 @@ void process_EX(Node* node, Kripke* ks){
     }
         sat_child_states = sat_child_states -> next;
     }   
-    print_states(node->sat_states);
+    print_states(node);
     return;
 }
 
@@ -225,6 +229,12 @@ void print_queue(queue* q){
 
 queue* enqueue(queue* q, State* state){
     queue* temp = q;
+    if (temp == NULL){
+        queue* new_node = (queue*)malloc(sizeof(queue));
+        new_node->state = state;
+        new_node->next = NULL;
+        return new_node;
+    }
     while (temp->next!=NULL){
         temp = temp->next;
     }
@@ -266,8 +276,10 @@ void process_EU(Node* node, Kripke* ks){
         temp = temp->next;
     }
     // print_queue(q);
-    while (q->next!=NULL){
+    while (q !=NULL){
         State* state = dequeue(q);
+        printf("printing queue\n");
+        print_queue(q);
         q = q->next;
         // print_queue(q);
         if (state!= NULL){
@@ -276,20 +288,26 @@ void process_EU(Node* node, Kripke* ks){
             State* instate = inneighbours->state;
             if (instate->visited == 0){
                 instate->visited = 1;
-                satisfying_states* temp = sat_states1;
-                while (temp!=NULL){
-                    if (strcmp(instate->name, temp->state->name)==0){
-                        node->sat_states = add_state(node->sat_states, state);
-                        q = enqueue(q, state);
+                printf("State: %s\n", instate->name);
+                satisfying_states* temp1 = sat_states1;
+                while (temp1!=NULL){
+                    printf("Satisfying states of left child: %s\n", temp1->state->name);
+                    if (strcmp(instate->name, temp1->state->name)==0){
+                        printf("State found: %s\n", instate->name);
+                        node->sat_states = add_state(node->sat_states, instate);
+                        print_states(node);
+                        q = enqueue(q, instate);
+                        printf("printing queue after enqueing\n");
+                        print_queue(q);
                         break;
                     }
-                    temp = temp->next;
+                    temp1 = temp1->next;
                 }
             }
             inneighbours = inneighbours->next;
         }
     }}
-    print_states(node->sat_states);
+    print_states(node);
     // reset the visited flag
     for (int i=0; i<ks->num_states; i++){
         ks->states[i].visited = 0;
@@ -345,12 +363,13 @@ void process_EG(Node* node, Kripke* ks){
         }
     }
     node->sat_states = sat_states;
-    print_states(node->sat_states);
+    print_states(node);
     return;
 }
 
 void check(Node* node){
     // check if the satisfying states of the node contatin S0
+    printf("========================\n");
     satisfying_states* temp = node->sat_states;
     while (temp!=NULL){
         if (strcmp(temp->state->name, "S0")==0){
@@ -360,7 +379,7 @@ void check(Node* node){
         }
         temp = temp->next;
     }
-    print_formula(node);
+    printformula(node);
     printf(" : Kripke structure does not satisfy this formula\n");
     return;
 }

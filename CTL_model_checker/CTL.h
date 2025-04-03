@@ -41,7 +41,7 @@ Node *new_node(char *type, Node *left, Node *right);
 void print_tree(Node *node, int depth, int *num_nodes);
 void printtree(Node *node);
 satisfying_states* add_state(satisfying_states* head, State* state);
-void print_states(satisfying_states* head);
+void print_states(Node* node);
 void process_prop(Node* node, Kripke* ks);
 
 #endif

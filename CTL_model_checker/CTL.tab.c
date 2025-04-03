@@ -534,7 +534,7 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int8 yyrline[] =
 {
        0,    19,    19,    20,    23,    24,    28,    30,    31,    32,
-      33,    34,    35,    36,    37,    38,    42,    45,    48,    55
+      33,    34,    78,    79,    80,    81,    85,    88,    91,    98
 };
 #endif
 
@@ -1414,74 +1414,117 @@ yyreduce:
 
   case 11:
 #line 34 "CTL.y"
-                                                      { (yyval.node) = (yyvsp[-1].node); printtree((yyval.node));}
-#line 1419 "CTL.tab.c"
-    break;
-
-  case 12:
-#line 35 "CTL.y"
-                                                      { (yyval.node) = new_node((yyvsp[0].str), NULL, NULL); printtree((yyval.node)); process_prop((yyval.node),&ks );}
-#line 1425 "CTL.tab.c"
-    break;
-
-  case 13:
-#line 36 "CTL.y"
-                                                      { (yyval.node) = new_node("T", NULL, NULL); printtree((yyval.node));}
-#line 1431 "CTL.tab.c"
-    break;
-
-  case 14:
-#line 37 "CTL.y"
-                                                      { (yyval.node) = new_node("F", NULL, NULL); printtree((yyval.node));}
-#line 1437 "CTL.tab.c"
-    break;
-
-  case 15:
-#line 38 "CTL.y"
-                                                      { Node* neg = new_node("~", (yyvsp[0].node), NULL); process_neg(neg, &ks);
-                                                        Node* truenode = new_node("T", NULL, NULL);
-                                                        Node* EFneg = new_node("EU", truenode, neg); 
-                                                        (yyval.node) = new_node("~", EFneg, NULL); printtree((yyval.node));}
-#line 1446 "CTL.tab.c"
-    break;
-
-  case 16:
-#line 42 "CTL.y"
-                                                      { Node* neg = new_node("~", (yyvsp[0].node), NULL);
-                                                        Node* EGneg = new_node("EG", neg, NULL); process_EG(EGneg, &ks);
-                                                        (yyval.node) = new_node("~", EGneg, NULL); printtree((yyval.node));}
-#line 1454 "CTL.tab.c"
-    break;
-
-  case 17:
-#line 45 "CTL.y"
-                                                      { Node* neg = new_node("~", (yyvsp[0].node), NULL); process_neg(neg, &ks);
-                                                        Node* negEX = new_node("EX", neg, NULL); 
-                                                        (yyval.node) = new_node("~", negEX, NULL); printtree((yyval.node));}
+                                                      {(yyval.node) = (yyvsp[-1].node); printtree((yyval.node));
+                                                        // expression can be paranthesised. find the type of the expression recursively
+                                                        if (strcmp((yyvsp[-1].node)->type, "|") == 0) {
+                                                            process_or((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node); 
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "&") == 0) {
+                                                            Node* negp = new_node("~", (yyvsp[-1].node)->left, NULL); process_neg(negp, &ks);
+                                                            Node* negq = new_node("~", (yyvsp[-1].node)->right, NULL); process_neg(negq, &ks);
+                                                            Node* negpORnegq = new_node("|", negp, negq); process_or(negpORnegq, &ks);
+                                                            (yyval.node) = new_node("~", negpORnegq, NULL);
+                                                            process_neg((yyval.node), &ks);
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "~") == 0) {
+                                                            process_neg((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "->") == 0) {
+                                                            Node* negp = new_node("~", (yyvsp[-1].node)->left, NULL); process_neg(negp, &ks);
+                                                            Node* negporq = new_node("|", negp, (yyvsp[-1].node)->right); process_or(negporq, &ks);
+                                                            (yyval.node) = negporq;
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "EX") == 0) {
+                                                            process_EX((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "EG") == 0) {
+                                                            process_EG((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "EU") == 0) {
+                                                            process_EU((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "T") == 0) {
+                                                            process_T((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else if (strcmp((yyvsp[-1].node)->type, "F") == 0) {
+                                                            process_F((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else if ((yyvsp[-1].node)->type[0] >= 'a' && (yyvsp[-1].node)->type[0] <= 'z' && (yyvsp[-1].node)->type[1] == '\0') {
+                                                            // printf("Propositional variable: %s\n", $2->type);
+                                                            process_prop((yyvsp[-1].node), &ks);
+                                                            (yyval.node) = (yyvsp[-1].node);
+                                                        } else {
+                                                            if ((yyvsp[-1].node)->type) {printf("it is here %s\n", (yyvsp[-1].node)->type);}
+                                                            printf("Error: Invalid expression\n");
+                                                            exit(1);
+                                                        }
+                                                        //printtree($$);
+                                                        }
 #line 1462 "CTL.tab.c"
     break;
 
+  case 12:
+#line 78 "CTL.y"
+                                                      { (yyval.node) = new_node((yyvsp[0].str), NULL, NULL); printtree((yyval.node)); process_prop((yyval.node),&ks );}
+#line 1468 "CTL.tab.c"
+    break;
+
+  case 13:
+#line 79 "CTL.y"
+                                                      { (yyval.node) = new_node("T", NULL, NULL); printtree((yyval.node)); process_T((yyval.node),&ks);}
+#line 1474 "CTL.tab.c"
+    break;
+
+  case 14:
+#line 80 "CTL.y"
+                                                      { (yyval.node) = new_node("F", NULL, NULL); printtree((yyval.node)); process_F((yyval.node),&ks);}
+#line 1480 "CTL.tab.c"
+    break;
+
+  case 15:
+#line 81 "CTL.y"
+                                                      { Node* neg = new_node("~", (yyvsp[0].node), NULL); process_neg(neg, &ks);
+                                                        Node* truenode = new_node("T", NULL, NULL); process_T(truenode, &ks);
+                                                        Node* EFneg = new_node("EU", truenode, neg); process_EU(EFneg, &ks); printf("EU states\n"); print_states(EFneg);
+                                                        (yyval.node) = new_node("~", EFneg, NULL); process_neg((yyval.node), &ks); printtree((yyval.node));}
+#line 1489 "CTL.tab.c"
+    break;
+
+  case 16:
+#line 85 "CTL.y"
+                                                      { Node* neg = new_node("~", (yyvsp[0].node), NULL); process_neg(neg, &ks);
+                                                        Node* EGneg = new_node("EG", neg, NULL); process_EG(EGneg, &ks);
+                                                        (yyval.node) = new_node("~", EGneg, NULL); printtree((yyval.node)); process_neg((yyval.node), &ks);}
+#line 1497 "CTL.tab.c"
+    break;
+
+  case 17:
+#line 88 "CTL.y"
+                                                      { Node* neg = new_node("~", (yyvsp[0].node), NULL); process_neg(neg, &ks);
+                                                        Node* negEX = new_node("EX", neg, NULL); process_EX(negEX, &ks);
+                                                        (yyval.node) = new_node("~", negEX, NULL); printtree((yyval.node)); process_neg((yyval.node), &ks);}
+#line 1505 "CTL.tab.c"
+    break;
+
   case 18:
-#line 48 "CTL.y"
+#line 91 "CTL.y"
                                                       { Node* negpsi = new_node("~", (yyvsp[-1].node), NULL); process_neg(negpsi, &ks);
                                                         Node* EGnegpsi = new_node("EG", negpsi, NULL); process_EG(EGnegpsi, &ks);
                                                         Node* phiorpsi = new_node("|", (yyvsp[-4].node), (yyvsp[-1].node)); process_or(phiorpsi, &ks);
                                                         Node* negphiorpsi = new_node("~", phiorpsi, NULL); process_neg(negphiorpsi, &ks);
-                                                        Node* EUnode = new_node("EU", negpsi,negphiorpsi);
+                                                        Node* EUnode = new_node("EU", negpsi,negphiorpsi); process_EU(EUnode, &ks);
                                                         Node* EUorEG = new_node("|", EUnode, EGnegpsi); process_or(EUorEG, &ks);
                                                         (yyval.node) = new_node("~", EUorEG, NULL); printtree((yyval.node)); process_neg((yyval.node), &ks);}
-#line 1474 "CTL.tab.c"
+#line 1517 "CTL.tab.c"
     break;
 
   case 19:
-#line 55 "CTL.y"
-                                                      { Node* truenode = new_node("T", NULL, NULL);
+#line 98 "CTL.y"
+                                                      { Node* truenode = new_node("T", NULL, NULL); process_T(truenode, &ks);
                                                         (yyval.node) = new_node("EU",truenode, (yyvsp[0].node)); printtree((yyval.node));}
-#line 1481 "CTL.tab.c"
+#line 1524 "CTL.tab.c"
     break;
 
 
-#line 1485 "CTL.tab.c"
+#line 1528 "CTL.tab.c"
 
       default: break;
     }
@@ -1713,7 +1756,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 59 "CTL.y"
+#line 102 "CTL.y"
 
 
 int main(int argc, char *argv[]) {
