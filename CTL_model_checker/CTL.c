@@ -276,11 +276,13 @@ void process_EU(Node* node, Kripke* ks){
         printf("No satisfying states for right child\n");
         return;
     }
-    satisfying_states* temp1 = sat_states1;
+    satisfying_states* temp1 = sat_states2;
     while(temp1!=NULL){
         node->sat_states = add_state(node->sat_states, temp1->state);
         temp1 = temp1->next;
     }
+    // printf("Satisfying states of left child\n");
+    // print_states(node);
     // node->sat_states = sat_states2;
     queue* q = init_queue();
     satisfying_states* temp = sat_states2;
