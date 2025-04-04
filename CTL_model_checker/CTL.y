@@ -31,50 +31,7 @@ expression:
     | NOT expression                                  { $$ = new_node("~", $2, NULL); printtree($$); process_neg($$, &ks);}
     | EX expression                                   { $$ = new_node("EX", $2, NULL); printtree($$); process_EX($$, &ks);}
     | EG expression                                   { $$ = new_node("EG", $2, NULL); printtree($$); process_EG($$, &ks);}
-    | LPAREN expression RPAREN                        {$$ = $2; printtree($$);
-                                                        // expression can be paranthesised. find the type of the expression recursively
-                                                        if (strcmp($2->type, "|") == 0) {
-                                                            process_or($2, &ks);
-                                                            $$ = $2; 
-                                                        } else if (strcmp($2->type, "&") == 0) {
-                                                            Node* negp = new_node("~", $2->left, NULL); process_neg(negp, &ks);
-                                                            Node* negq = new_node("~", $2->right, NULL); process_neg(negq, &ks);
-                                                            Node* negpORnegq = new_node("|", negp, negq); process_or(negpORnegq, &ks);
-                                                            $$ = new_node("~", negpORnegq, NULL);
-                                                            process_neg($$, &ks);
-                                                        } else if (strcmp($2->type, "~") == 0) {
-                                                            process_neg($2, &ks);
-                                                            $$ = $2;
-                                                        } else if (strcmp($2->type, "->") == 0) {
-                                                            Node* negp = new_node("~", $2->left, NULL); process_neg(negp, &ks);
-                                                            Node* negporq = new_node("|", negp, $2->right); process_or(negporq, &ks);
-                                                            $$ = negporq;
-                                                        } else if (strcmp($2->type, "EX") == 0) {
-                                                            process_EX($2, &ks);
-                                                            $$ = $2;
-                                                        } else if (strcmp($2->type, "EG") == 0) {
-                                                            process_EG($2, &ks);
-                                                            $$ = $2;
-                                                        } else if (strcmp($2->type, "EU") == 0) {
-                                                            process_EU($2, &ks);
-                                                            $$ = $2;
-                                                        } else if (strcmp($2->type, "T") == 0) {
-                                                            process_T($2, &ks);
-                                                            $$ = $2;
-                                                        } else if (strcmp($2->type, "F") == 0) {
-                                                            process_F($2, &ks);
-                                                            $$ = $2;
-                                                        } else if ($2->type[0] >= 'a' && $2->type[0] <= 'z' && $2->type[1] == '\0') {
-                                                            // printf("Propositional variable: %s\n", $2->type);
-                                                            process_prop($2, &ks);
-                                                            $$ = $2;
-                                                        } else {
-                                                            if ($2->type) {printf("it is here %s\n", $2->type);}
-                                                            printf("Error: Invalid expression\n");
-                                                            exit(1);
-                                                        }
-                                                        //printtree($$);
-                                                        }
+    | LPAREN expression RPAREN                        {$$ = $2; }
     | PROP                                            { $$ = new_node($1, NULL, NULL); printtree($$); process_prop($$,&ks ); free($1);}
     | T                                               { $$ = new_node("T", NULL, NULL); printtree($$); process_T($$,&ks);}
     | F                                               { $$ = new_node("F", NULL, NULL); printtree($$); process_F($$,&ks);}
